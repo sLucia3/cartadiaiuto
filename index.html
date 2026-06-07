@@ -79,7 +79,7 @@
             color: #ff6b6b;
             margin-top: 5px;
             font-weight: bold;
-            min-height: 16px; /* 文字がない時も高さをキープ */
+            min-height: 16px;
         }
         
         /* リセットボタン */
@@ -111,31 +111,25 @@
     const MAX_STAMPS = 5; 
     let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
     let lastQR = localStorage.getItem('lastQR') || "";
-    // 日付を保存する配列（なければ空っぽで用意）
     let stampDates = JSON.parse(localStorage.getItem('stampDates')) || [];
 
-    // 画面にスタンプ台を準備する関数
     function renderBoard() {
         const board = document.getElementById('stampBoard');
         board.innerHTML = '';
         
         for (let i = 1; i <= MAX_STAMPS; i++) {
-            // 縦並びにするための入れ物
             const container = document.createElement('div');
             container.className = 'stamp-container';
 
-            // スタンプの丸
             const slot = document.createElement('div');
             slot.className = 'stamp-slot';
             
-            // 日付を入れる文字エリア
             const dateLabel = document.createElement('div');
             dateLabel.className = 'stamp-date';
 
             if (i <= stampCount) {
                 slot.className = 'stamp-slot active';
                 slot.innerText = '💮'; 
-                // 記録されている日付を表示（配列は0から始まるので i-1）
                 dateLabel.innerText = stampDates[i - 1] || '';
             } else {
                 slot.innerText = i;
@@ -148,22 +142,22 @@
         }
     }
 
-    // QRコードの読み取りに成功したときの処理
     function onScanSuccess(decodedText, decodedResult) {
+        // すでに満タンの場合は読み込ませない
+        if (stampCount >= MAX_STAMPS) {
+            alert("スタンプはすでにマンタンだよ！お母さんにお小遣いをもらおう！");
+            return;
+        }
+
         if (decodedText === lastQR) {
             alert("そのQRコードはさっき使ったよ！次のお手伝いをしてね。");
             return;
         }
 
-        if (stampCount >= MAX_STAMPS) {
-            alert("スタンプがマンタンだよ！お母さんにお小遣いをもらおう！");
-            return;
-        }
-
-        // 今日のお日付（月/日）をゲットする
+        // 今日の日付を取得
         const now = new Date();
         const dateString = `${now.getMonth() + 1}/${now.getDate()}`;
-        stampDates.push(dateString); // 配列に日付を追加
+        stampDates.push(dateString); 
 
         stampCount++;
         lastQR = decodedText; 
@@ -171,13 +165,21 @@
         // スマホにデータを保存
         localStorage.setItem('stampCount', stampCount);
         localStorage.setItem('lastQR', lastQR);
-        localStorage.setItem('stampDates', JSON.stringify(stampDates)); // 日付リストを保存
+        localStorage.setItem('stampDates', JSON.stringify(stampDates)); 
 
         renderBoard();
-        alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
+
+        // 5個目に達したかどうかの判定
+        if (stampCount === MAX_STAMPS) {
+            // 画面が更新されたのを少しだけ待ってから、満タンメッセージを出す
+            setTimeout(() => {
+                alert("🎉おめでとう！スタンプがマンタンだよ！お母さんにお小遣いをもらおう！💰");
+            }, 500);
+        } else {
+            alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
+        }
     }
 
-    // カメラの起動設定
     const html5QrcodeScanner = new Html5QrcodeScanner(
         "reader", 
         { fps: 10, qrbox: { width: 250, height: 250 } },
@@ -185,7 +187,6 @@
     );
     html5QrcodeScanner.render(onScanSuccess);
 
-    // データを最初からにするリセット機能
     function resetStamps() {
         if (confirm("本当にスタンプと日付をぜんぶ消してもいい？")) {
             stampCount = 0;
