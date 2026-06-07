@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>おてつだいスタンプカード</title>
+    <title>お小遣いアップチャレンジ</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         body {
@@ -15,7 +15,13 @@
             color: #333;
         }
         h1 { font-size: 24px; color: #ff6b6b; margin-bottom: 5px; }
-        .subtitle { font-size: 14px; color: #777; margin-bottom: 20px; }
+        .subtitle { 
+            font-size: 14px; 
+            color: #555; 
+            margin-bottom: 20px; 
+            line-height: 1.6;
+            padding: 0 10px;
+        }
         
         /* カメラ表示エリア */
         #reader {
@@ -76,8 +82,8 @@
 </head>
 <body>
 
-    <h1>おてつだいスタンプ</h1>
-    <p class="subtitle">お母さんのスマホのQRコードをうつしてね！</p>
+    <h1>お小遣いアップチャレンジ</h1>
+    <p class="subtitle">夕飯のスープを作る＆お弁当箱を洗ったらスタンプ１つ。<br>５コ溜まったらお小遣いあり。</p>
 
     <div id="reader"></div>
 
@@ -87,7 +93,7 @@
     <button class="reset-btn" onclick="resetStamps()">ぜんぶ消してはじめからにする</button>
 
 <script>
-    const MAX_STAMPS = 10; // スタンプの最大数
+    const MAX_STAMPS = 5; // スタンプの最大数を5個に変更
     let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
     let lastQR = localStorage.getItem('lastQR') || "";
 
@@ -118,7 +124,7 @@
 
         // スタンプが満タンなら終了
         if (stampCount >= MAX_STAMPS) {
-            alert("スタンプがマンタンだよ！お母さんにごほうびをもらおう！");
+            alert("スタンプがマンタンだよ！お母さんにお小遣いをもらおう！");
             return;
         }
 
