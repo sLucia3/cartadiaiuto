@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>おてつだいスタンプカード</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            text-align: center;
+            background-color: #f7f9fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { font-size: 24px; color: #ff6b6b; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: #777; margin-bottom: 20px; }
+        
+        /* カメラ表示エリア */
+        #reader {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* スタンプ台のデザイン */
+        .stamp-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 350px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .stamp-slot {
+            aspect-ratio: 1;
+            border: 2px dashed #ccc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background-color: #fff;
+            transition: all 0.3s ease;
+        }
+        /* スタンプが押された時のスタイル */
+        .stamp-slot.active {
+            border: 2px solid #ff6b6b;
+            background-color: #ffe3e3;
+            animation: pop 0.3s ease-in-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+        
+        /* リセットボタン */
+        .reset-btn {
+            margin-top: 30px;
+            padding: 8px 16px;
+            background-color: #aaa;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>おてつだいスタンプ</h1>
+    <p class="subtitle">お母さんのスマホのQRコードをうつしてね！</p>
+
+    <div id="reader"></div>
+
+    <div class="stamp-board" id="stampBoard">
+        </div>
+
+    <button class="reset-btn" onclick="resetStamps()">ぜんぶ消してはじめからにする</button>
+
+<script>
+    const MAX_STAMPS = 10; // スタンプの最大数
+    let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
+    let lastQR = localStorage.getItem('lastQR') || "";
+
+    // 画面にスタンプ台を準備する関数
+    function renderBoard() {
+        const board = document.getElementById('stampBoard');
+        board.innerHTML = '';
+        for (let i = 1; i <= MAX_STAMPS; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'stamp-slot';
+            if (i <= stampCount) {
+                slot.className = 'stamp-slot active';
+                slot.innerText = '💮'; // スタンプのマーク
+            } else {
+                slot.innerText = i;
+            }
+            board.appendChild(slot);
+        }
+    }
+
+    // QRコードの読み取りに成功したときの処理
+    function onScanSuccess(decodedText, decodedResult) {
+        // 【不正防止】直前に読み取ったQRコードと同じ合言葉なら無視する
+        if (decodedText === lastQR) {
+            alert("そのQRコードはさっき使ったよ！次のお手伝いをしてね。");
+            return;
+        }
+
+        // スタンプが満タンなら終了
+        if (stampCount >= MAX_STAMPS) {
+            alert("スタンプがマンタンだよ！お母さんにごほうびをもらおう！");
+            return;
+        }
+
+        // スタンプを1つ増やす
+        stampCount++;
+        lastQR = decodedText; // 今回の合言葉を保存
+
+        // スマホにデータを保存
+        localStorage.setItem('stampCount', stampCount);
+        localStorage.setItem('lastQR', lastQR);
+
+        // 画面を更新してお祝い
+        renderBoard();
+        alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
+    }
+
+    // カメラの起動設定
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess);
+
+    // データを最初からにするリセット機能
+    function resetStamps() {
+        if (confirm("本当にスタンプをぜんぶ消してもいい？")) {
+            stampCount = 0;
+            lastQR = "";
+            localStorage.clear();
+            renderBoard();
+        }
+    }
+
+    // アプリ起動時にスタンプ台を表示
+    renderBoard();
+</script>
+</body>
+</html>
