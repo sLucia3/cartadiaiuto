@@ -111,7 +111,6 @@
     const MAX_STAMPS = 5; 
     let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
     let stampDates = JSON.parse(localStorage.getItem('stampDates')) || [];
-    // これまでに読み込みに成功した「合言葉」を記録するリスト
     let usedQRs = JSON.parse(localStorage.getItem('usedQRs')) || [];
 
     // ★★★ 不正防止：秘密の合言葉を5つ指定 ★★★
@@ -190,10 +189,12 @@
 
         // 5個目に達したかどうかの判定
         if (stampCount === MAX_STAMPS) {
+            // 画面の更新を少しだけ待ってから、アイコン付きのメッセージを1回だけ表示
             setTimeout(() => {
                 alert("🎉おめでとう！スタンプがマンタンだよ！お母さんにお小遣いをもらおう！💰");
-            }, 500);
+            }, 400);
         } else {
+            // 1〜4個目の時だけ通常のメッセージを出す
             alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
         }
     }
