@@ -112,8 +112,11 @@
     let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
     let stampDates = JSON.parse(localStorage.getItem('stampDates')) || [];
     let usedQRs = JSON.parse(localStorage.getItem('usedQRs')) || [];
+    
+    // 【連続読み込み防止の鍵】
+    let isProcessing = false;
 
-    // ★★★ 不正防止：秘密の合言葉を5つ指定 ★★★
+    // 不正防止：秘密の合言葉を5つ指定
     const VALID_KEYWORDS = [
         "soup-ok-9912", 
         "clean-box-7743", 
@@ -152,23 +155,35 @@
     }
 
     function onScanSuccess(decodedText, decodedResult) {
+        // 【連続防止】すでに処理中の場合は、今回のスキャンを完全に無視する
+        if (isProcessing) return;
+
         // すでに満タンの場合は読み込ませない
         if (stampCount >= MAX_STAMPS) {
+            isProcessing = true;
             alert("スタンプはすでにマンタンだよ！お母さんにお小遣いをもらおう！");
+            isProcessing = false;
             return;
         }
 
         // 【不正防止①】秘密の合言葉と一致しない場合は無視する
         if (!VALID_KEYWORDS.includes(decodedText)) {
+            isProcessing = true;
             alert("❌ このQRコードは使えません！お母さんのQRコードをうつしてね。");
+            isProcessing = false;
             return;
         }
 
         // 【不正防止②】すでに使われた合言葉の場合は無視する
         if (usedQRs.includes(decodedText)) {
+            isProcessing = true;
             alert("⚠️ そのQRコードはすでに使われているよ！別のお手伝いをしてね。");
+            isProcessing = false;
             return;
         }
+
+        // ここから本番処理が始まるので鍵をかける
+        isProcessing = true;
 
         // 今日の日付を取得
         const now = new Date();
@@ -189,13 +204,16 @@
 
         // 5個目に達したかどうかの判定
         if (stampCount === MAX_STAMPS) {
-            // 画面の更新を少しだけ待ってから、アイコン付きのメッセージを1回だけ表示
             setTimeout(() => {
                 alert("🎉おめでとう！スタンプがマンタンだよ！お母さんにお小遣いをもらおう！💰");
+                isProcessing = false; // メッセージを閉じた後に鍵を開ける
             }, 400);
         } else {
-            // 1〜4個目の時だけ通常のメッセージを出す
-            alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
+            // 1〜4個目の時
+            setTimeout(() => {
+                alert(`おてつだい成功！スタンプ ${stampCount}個目ゲット！`);
+                isProcessing = false; // メッセージを閉じた後に鍵を開ける
+            }, 100);
         }
     }
 
