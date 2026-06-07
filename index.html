@@ -114,14 +114,13 @@
     // これまでに読み込みに成功した「合言葉」を記録するリスト
     let usedQRs = JSON.parse(localStorage.getItem('usedQRs')) || [];
 
-    // ★★★ 不正防止：お母さんが作ったQRコードの「秘密の合言葉」を5つ指定します ★★★
-    // 子供にバレにくい、予測しにくい英語や数字にするのがコツです！
+    // ★★★ 不正防止：秘密の合言葉を5つ指定 ★★★
     const VALID_KEYWORDS = [
-        "soup-ok-9912", // 1個目のスタンプ用
-        "clean-box-7743", // 2個目のスタンプ用
-        "happy-dinner-3321", // 3個目のスタンプ用
-        "thankyou-mom-5582", // 4個目のスタンプ用
-        "challenge-clear-8801" // 5個目のスタンプ用
+        "soup-ok-9912", 
+        "clean-box-7743", 
+        "happy-dinner-3321", 
+        "thankyou-mom-5582", 
+        "challenge-clear-8801"
     ];
 
     function renderBoard() {
@@ -160,13 +159,13 @@
             return;
         }
 
-        // 【不正防止①】読み取った文字が、お母さんの用意した5つの合言葉のどれにも一致しない場合
+        // 【不正防止①】秘密の合言葉と一致しない場合は無視する
         if (!VALID_KEYWORDS.includes(decodedText)) {
             alert("❌ このQRコードは使えません！お母さんのQRコードをうつしてね。");
             return;
         }
 
-        // 【不正防止②】すでに一度使ったことがある合言葉（QRコード）の場合
+        // 【不正防止②】すでに使われた合言葉の場合は無視する
         if (usedQRs.includes(decodedText)) {
             alert("⚠️ そのQRコードはすでに使われているよ！別のお手伝いをしてね。");
             return;
