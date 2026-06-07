@@ -98,7 +98,7 @@
 <body>
 
     <h1>お小遣いアップチャレンジ</h1>
-    <p class="subtitle">夕飯のスープを作る＆お弁当箱を洗ったら<br>スタンプ１つ。<br>５コ溜まったらお小遣いあり。</p>
+    <p class="subtitle">夕飯のスープを作る＆お弁当箱を洗ったらスタンプ１つ。<br>５コ溜まったらお小遣いあり。</p>
 
     <div id="reader"></div>
 
@@ -110,8 +110,19 @@
 <script>
     const MAX_STAMPS = 5; 
     let stampCount = parseInt(localStorage.getItem('stampCount')) || 0;
-    let lastQR = localStorage.getItem('lastQR') || "";
     let stampDates = JSON.parse(localStorage.getItem('stampDates')) || [];
+    // これまでに読み込みに成功した「合言葉」を記録するリスト
+    let usedQRs = JSON.parse(localStorage.getItem('usedQRs')) || [];
+
+    // ★★★ 不正防止：お母さんが作ったQRコードの「秘密の合言葉」を5つ指定します ★★★
+    // 子供にバレにくい、予測しにくい英語や数字にするのがコツです！
+    const VALID_KEYWORDS = [
+        "soup-ok-9912", // 1個目のスタンプ用
+        "clean-box-7743", // 2個目のスタンプ用
+        "happy-dinner-3321", // 3個目のスタンプ用
+        "thankyou-mom-5582", // 4個目のスタンプ用
+        "challenge-clear-8801" // 5個目のスタンプ用
+    ];
 
     function renderBoard() {
         const board = document.getElementById('stampBoard');
@@ -149,8 +160,15 @@
             return;
         }
 
-        if (decodedText === lastQR) {
-            alert("そのQRコードはさっき使ったよ！次のお手伝いをしてね。");
+        // 【不正防止①】読み取った文字が、お母さんの用意した5つの合言葉のどれにも一致しない場合
+        if (!VALID_KEYWORDS.includes(decodedText)) {
+            alert("❌ このQRコードは使えません！お母さんのQRコードをうつしてね。");
+            return;
+        }
+
+        // 【不正防止②】すでに一度使ったことがある合言葉（QRコード）の場合
+        if (usedQRs.includes(decodedText)) {
+            alert("⚠️ そのQRコードはすでに使われているよ！別のお手伝いをしてね。");
             return;
         }
 
@@ -159,19 +177,20 @@
         const dateString = `${now.getMonth() + 1}/${now.getDate()}`;
         stampDates.push(dateString); 
 
+        // 使用済みの合言葉リストに追加
+        usedQRs.push(decodedText);
+
         stampCount++;
-        lastQR = decodedText; 
 
         // スマホにデータを保存
         localStorage.setItem('stampCount', stampCount);
-        localStorage.setItem('lastQR', lastQR);
         localStorage.setItem('stampDates', JSON.stringify(stampDates)); 
+        localStorage.setItem('usedQRs', JSON.stringify(usedQRs)); 
 
         renderBoard();
 
         // 5個目に達したかどうかの判定
         if (stampCount === MAX_STAMPS) {
-            // 画面が更新されたのを少しだけ待ってから、満タンメッセージを出す
             setTimeout(() => {
                 alert("🎉おめでとう！スタンプがマンタンだよ！お母さんにお小遣いをもらおう！💰");
             }, 500);
@@ -188,10 +207,10 @@
     html5QrcodeScanner.render(onScanSuccess);
 
     function resetStamps() {
-        if (confirm("本当にスタンプと日付をぜんぶ消してもいい？")) {
+        if (confirm("本当にスタンプと履歴をぜんぶ消してもいい？")) {
             stampCount = 0;
-            lastQR = "";
             stampDates = [];
+            usedQRs = [];
             localStorage.clear();
             renderBoard();
         }
